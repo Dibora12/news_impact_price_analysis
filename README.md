@@ -18,6 +18,7 @@ This project analyzes financial news sentiment to identify correlations with sto
   - **Date Range**: January 22, 1999 to July 30, 2024 (filtered to June 5, 2020 onward to align with news data)
 
 ## Repository Structure
+```
 news_impact_price_analysis/
 ├── .github/
 │   └── workflows/
@@ -43,7 +44,7 @@ news_impact_price_analysis/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-
+```
 
 
 ## Setup Instructions

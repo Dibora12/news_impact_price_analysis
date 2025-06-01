@@ -4,10 +4,14 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from collections import Counter
+import string
+from nltk.stem import WordNetLemmatizer
 
-# Download NLTK resources if not already available
+# ---------------------- Download NLTK Resources ----------------------
 nltk.download('punkt', quiet=True)
 nltk.download('stopwords', quiet=True)
+nltk.download('wordnet', quiet=True)
+nltk.download('omw-1.4', quiet=True)
 
 # ---------------------- Data Load and Clean ----------------------
 
@@ -27,24 +31,36 @@ def parse_dates(df):
 # ---------------------- Ticker Filtering ----------------------
 
 def filter_by_ticker(df, ticker):
-    return df[df['stock'] == ticker]
+    return df[df['stock'] == ticker].copy()
 
 # ---------------------- Headline Preprocessing ----------------------
 
 stop_words = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
 
 def preprocess_text(text):
-    tokens = word_tokenize(text.lower())
-    return [t for t in tokens if t.isalpha() and t not in stop_words]
+    # 1. Lowercasing
+    text = text.lower()
+    
+    # 2. Tokenize
+    tokens = word_tokenize(text)
+    
+    # 3. Remove punctuation, stopwords, then lemmatize
+    cleaned_tokens = [
+        lemmatizer.lemmatize(t)
+        for t in tokens
+        if t.isalpha() and t not in stop_words
+    ]
+    return cleaned_tokens
 
 def add_token_column(df):
-    df['tokens'] = df['headline'].apply(preprocess_text)
+    df.loc[:, 'tokens'] = df['headline'].apply(preprocess_text)
     return df
 
 # ---------------------- Descriptive Stats ----------------------
 
 def compute_headline_length_stats(df):
-    df['headline_length'] = df['headline'].apply(len)
+    df.loc[:, 'headline_length'] = df['headline'].apply(len)
     return df['headline_length'].describe()
 
 def publisher_article_counts(df):
@@ -67,6 +83,7 @@ def plot_daily_article_frequency(daily_counts, title='Daily Article Frequency'):
 # ---------------------- Word Frequency ----------------------
 
 def compute_word_frequencies(df, top_n=10):
+    # Assumes df already has a 'tokens' column
     all_tokens = [token for tokens in df['tokens'] for token in tokens]
     word_freq = Counter(all_tokens)
     return dict(word_freq.most_common(top_n))
@@ -88,7 +105,7 @@ def extract_publisher_domain(publisher):
     return publisher
 
 def add_publisher_domain(df):
-    df['publisher_domain'] = df['publisher'].apply(extract_publisher_domain)
+    df.loc[:, 'publisher_domain'] = df['publisher'].apply(extract_publisher_domain)
     return df
 
 def top_publisher_domains(df, top_n=10):
